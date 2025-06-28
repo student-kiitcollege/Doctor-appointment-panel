@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
 import userRouter from "./routes/userRoute.js";
@@ -8,28 +9,29 @@ import doctorRouter from "./routes/doctorRoute.js";
 import adminRouter from "./routes/adminRoute.js";
 
 const app = express();
+
+// 🔌 Database & Cloudinary connections
 connectDB();
 connectCloudinary();
 
-// ✅ Configure CORS to allow your frontend domain
+// ✅ CORS Setup
 const allowedOrigins = [
-  "https://doctor-appointment-panel1.vercel.app",
-  "http://localhost:5174" // if you're also testing locally
+  "https://doctor-appointment-panel1.vercel.app", // ✅ your deployed frontend
+  "http://localhost:5174" // ✅ local dev frontend (optional)
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow no origin (like curl, Postman) or allowed ones
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error("CORS Not Allowed"));
     }
   },
-  credentials: true,
+  credentials: true
 }));
 
-app.options('*', cors()); // ✅ Preflight support
+app.options("*", cors()); // ✅ enable preflight requests
 
 // ✅ Middlewares
 app.use(express.json());
@@ -39,9 +41,9 @@ app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 
-// ✅ Root test
+// ✅ Test route
 app.get("/", (req, res) => {
-  res.send("API Working");
+  res.send("API Running");
 });
 
 // ✅ Export for Vercel
