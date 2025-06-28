@@ -8,22 +8,27 @@ import doctorRouter from "./routes/doctorRoute.js";
 import adminRouter from "./routes/adminRoute.js";
 
 const app = express();
-connectDB();
-connectCloudinary();
 
-// ✅ CORRECT CORS SETUP
+// Wrap DB connection in try-catch for Vercel
+try {
+  await connectDB();
+  connectCloudinary();
+} catch (err) {
+  console.error("DB connection failed:", err);
+}
+
 app.use(cors({
   origin: [
-    "https://doctor-appointment-panel.vercel.app"
+    "https://doctor-appointment-panel.vercel.app",
+    "http://localhost:5174"
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: false // set true only if using cookies
+  credentials: true
 }));
 
 app.use(express.json());
 
-// Routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
@@ -32,5 +37,5 @@ app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-// ✅ Vercel requires this:
+// ✅ THIS IS CRUCIAL
 export default app;
