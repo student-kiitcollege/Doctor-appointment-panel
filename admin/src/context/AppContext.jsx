@@ -1,42 +1,44 @@
 import { createContext } from "react";
 
-
-export const AppContext = createContext()
+export const AppContext = createContext();
 
 const AppContextProvider = (props) => {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4001";
+  const currency = import.meta.env.VITE_CURRENCY || "₹";
 
-    const currency = import.meta.env.VITE_CURRENCY
-    const backendUrl = import.meta.env.VITE_BACKEND_URL
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  // Format slot date from "20_01_2000" => "20 Jan 2000"
+  const slotDateFormat = (slotDate) => {
+    const dateArray = slotDate.split("_");
+    const day = dateArray[0];
+    const monthIndex = parseInt(dateArray[1], 10) - 1; // adjust month to 0-based
+    const year = dateArray[2];
+    return `${day} ${months[monthIndex]} ${year}`;
+  };
 
-    // Function to format the date eg. ( 20_01_2000 => 20 Jan 2000 )
-    const slotDateFormat = (slotDate) => {
-        const dateArray = slotDate.split('_')
-        return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2]
+  // Calculate age from DOB (e.g., "2000-01-20")
+  const calculateAge = (dob) => {
+    const today = new Date();
+    const birthDate = new Date(dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
     }
 
-    // Function to calculate the age eg. ( 20_01_2000 => 24 )
-    const calculateAge = (dob) => {
-        const today = new Date()
-        const birthDate = new Date(dob)
-        let age = today.getFullYear() - birthDate.getFullYear()
-        return age
-    }
+    return age;
+  };
 
-    const value = {
-        backendUrl,
-        currency,
-        slotDateFormat,
-        calculateAge,
-    }
+  const value = {
+    backendUrl,
+    currency,
+    slotDateFormat,
+    calculateAge,
+  };
 
-    return (
-        <AppContext.Provider value={value}>
-            {props.children}
-        </AppContext.Provider>
-    )
+  return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
+};
 
-}
-
-export default AppContextProvider
+export default AppContextProvider;
