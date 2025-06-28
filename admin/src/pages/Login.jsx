@@ -19,24 +19,31 @@ const Login = () => {
     setLoading(true);
 
     try {
-      if (state === 'Admin') {
-        const { data } = await axios.post(`${backendUrl}/api/admin/login`, { email, password });
-        if (data.success) {
+      const endpoint =
+        state === 'Admin' ? '/api/admin/login' : '/api/doctor/login';
+      const { data } = await axios.post(
+        `${backendUrl}${endpoint}`,
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: false, // true only if backend sets cookies
+        }
+      );
+
+      if (data.success) {
+        if (state === 'Admin') {
           setAToken(data.token);
           localStorage.setItem('aToken', data.token);
           toast.success('Admin login successful!');
         } else {
-          toast.error(data.message || 'Login failed');
-        }
-      } else {
-        const { data } = await axios.post(`${backendUrl}/api/doctor/login`, { email, password });
-        if (data.success) {
           setDToken(data.token);
           localStorage.setItem('dToken', data.token);
           toast.success('Doctor login successful!');
-        } else {
-          toast.error(data.message || 'Login failed');
         }
+      } else {
+        toast.error(data.message || 'Login failed');
       }
     } catch (error) {
       console.error(error);
