@@ -7,42 +7,42 @@ import userRouter from "./routes/userRoute.js";
 import doctorRouter from "./routes/doctorRoute.js";
 import adminRouter from "./routes/adminRoute.js";
 
-// App setup
 const app = express();
 connectDB();
 connectCloudinary();
 
-// ✅ Setup CORS with allowed origin
+// ✅ Configure CORS to allow your frontend domain
 const allowedOrigins = [
-  "https://doctor-appointment-panel1.vercel.app", // Your frontend
-  "http://localhost:5174" // Optional for local dev
+  "https://doctor-appointment-panel1.vercel.app",
+  "http://localhost:5174" // if you're also testing locally
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow no origin (like curl, Postman) or allowed ones
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("CORS not allowed for this origin"));
+      callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
 }));
 
-// Preflight support
-app.options("*", cors());
+app.options('*', cors()); // ✅ Preflight support
 
-// Middlewares
+// ✅ Middlewares
 app.use(express.json());
 
-// Routes
+// ✅ Routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 
+// ✅ Root test
 app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-// ✅ Export for Vercel deployment
+// ✅ Export for Vercel
 export default app;
