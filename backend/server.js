@@ -14,8 +14,7 @@ connectCloudinary();
 // ✅ CORRECT CORS SETUP
 app.use(cors({
   origin: [
-    "https://doctor-appointment-panel1.vercel.app",
-    "http://localhost:5174"
+    "https://doctor-appointment-panel.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
