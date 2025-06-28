@@ -12,9 +12,28 @@ const app = express();
 connectDB();
 connectCloudinary();
 
+// ✅ Setup CORS with allowed origin
+const allowedOrigins = [
+  "https://doctor-appointment-panel1.vercel.app", // Your frontend
+  "http://localhost:5174" // Optional for local dev
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed for this origin"));
+    }
+  },
+  credentials: true,
+}));
+
+// Preflight support
+app.options("*", cors());
+
 // Middlewares
 app.use(express.json());
-app.use(cors());
 
 // Routes
 app.use("/api/user", userRouter);
@@ -25,5 +44,5 @@ app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-// Export the handler for Vercel
+// ✅ Export for Vercel deployment
 export default app;
