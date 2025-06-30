@@ -15,24 +15,24 @@ const Login = () => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-    console.log("Form submitting...");
 
     try {
       let response;
       if (state === 'Sign Up') {
         if (!name || !email || !password) {
-          toast.error("All fields are required");
+          toast.error('All fields are required');
           return;
         }
+
         response = await axios.post(`${backendUrl}/api/user/register`, {
           name,
           email,
-          password
+          password,
         });
       } else {
         response = await axios.post(`${backendUrl}/api/user/login`, {
           email,
-          password
+          password,
         });
       }
 
@@ -41,13 +41,13 @@ const Login = () => {
       if (data.success && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        toast.success(state === 'Sign Up' ? "Account created successfully" : "Login successful");
+        toast.success(state === 'Sign Up' ? 'Account created successfully' : 'Login successful');
         navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
       }
     } catch (error) {
-      console.error("Auth Error:", error.response?.data || error.message);
+      console.error('Auth Error:', error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Something went wrong');
     }
   };
@@ -61,74 +61,110 @@ const Login = () => {
   return (
     <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center justify-center">
       <div className="flex flex-col gap-3 p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-[#5E5E5E] text-sm shadow-lg bg-white">
-        <p className="text-2xl font-semibold">{state === 'Sign Up' ? 'Create Account' : 'Login'}</p>
-        <p className="mb-2">Please {state === 'Sign Up' ? 'sign up' : 'log in'} to book appointment</p>
-
-        {state === 'Sign Up' && (
-          <div className="w-full">
-            <p>Full Name</p>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="border border-[#DADADA] rounded w-full p-2 mt-1"
-              placeholder="Enter your name"
-              required
-            />
-          </div>
-        )}
-
-        <div className="w-full">
-          <p>Email</p>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border border-[#DADADA] rounded w-full p-2 mt-1"
-            placeholder="Enter your email"
-            required
-          />
-        </div>
-
-        <div className="w-full">
-          <p>Password</p>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border border-[#DADADA] rounded w-full p-2 mt-1"
-            placeholder="Enter your password"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="bg-primary text-white w-full py-2 my-2 rounded-md text-base hover:opacity-90 transition"
-        >
-          {state === 'Sign Up' ? 'Create Account' : 'Login'}
-        </button>
-
         {state === 'Sign Up' ? (
-          <p>
-            Already have an account?{' '}
-            <span
-              onClick={() => setState('Login')}
-              className="text-primary underline cursor-pointer"
+          <>
+            <p className="text-2xl font-semibold">Create Account</p>
+            <p className="mb-2">Please sign up to book appointment</p>
+
+            <div className="w-full">
+              <p>Full Name</p>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="border border-[#DADADA] rounded w-full p-2 mt-1"
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+
+            <div className="w-full">
+              <p>Email</p>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border border-[#DADADA] rounded w-full p-2 mt-1"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className="w-full">
+              <p>Password</p>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border border-[#DADADA] rounded w-full p-2 mt-1"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-primary text-white w-full py-2 my-2 rounded-md text-base hover:opacity-90 transition"
             >
-              Login here
-            </span>
-          </p>
+              Create Account
+            </button>
+
+            <p>
+              Already have an account?{' '}
+              <span
+                onClick={() => setState('Login')}
+                className="text-primary underline cursor-pointer"
+              >
+                Login here
+              </span>
+            </p>
+          </>
         ) : (
-          <p>
-            Create a new account?{' '}
-            <span
-              onClick={() => setState('Sign Up')}
-              className="text-primary underline cursor-pointer"
+          <>
+            <p className="text-2xl font-semibold">Login</p>
+            <p className="mb-2">Please log in to book appointment</p>
+
+            <div className="w-full">
+              <p>Email</p>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border border-[#DADADA] rounded w-full p-2 mt-1"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className="w-full">
+              <p>Password</p>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border border-[#DADADA] rounded w-full p-2 mt-1"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-primary text-white w-full py-2 my-2 rounded-md text-base hover:opacity-90 transition"
             >
-              Click here
-            </span>
-          </p>
+              Login
+            </button>
+
+            <p>
+              Create a new account?{' '}
+              <span
+                onClick={() => setState('Sign Up')}
+                className="text-primary underline cursor-pointer"
+              >
+                Click here
+              </span>
+            </p>
+          </>
         )}
       </div>
     </form>
