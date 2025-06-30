@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [state, setState] = useState('Login'); // ✅ Default to Login
+  const [isSignUp, setIsSignUp] = useState(false); // ✅ use boolean for simplicity
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,11 +15,11 @@ const Login = () => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-    console.log("Form submitting...");
 
     try {
       let response;
-      if (state === 'Sign Up') {
+
+      if (isSignUp) {
         if (!name || !email || !password) {
           toast.error("All fields are required");
           return;
@@ -27,12 +27,12 @@ const Login = () => {
         response = await axios.post(`${backendUrl}/api/user/register`, {
           name,
           email,
-          password
+          password,
         });
       } else {
         response = await axios.post(`${backendUrl}/api/user/login`, {
           email,
-          password
+          password,
         });
       }
 
@@ -41,7 +41,7 @@ const Login = () => {
       if (data.success && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        toast.success(state === 'Sign Up' ? "Account created successfully" : "Login successful");
+        toast.success(isSignUp ? "Account created successfully" : "Login successful");
         navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
@@ -61,10 +61,11 @@ const Login = () => {
   return (
     <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center justify-center">
       <div className="flex flex-col gap-3 p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-[#5E5E5E] text-sm shadow-lg bg-white">
-        <p className="text-2xl font-semibold">{state === 'Sign Up' ? 'Create Account' : 'Login'}</p>
-        <p className="mb-2">Please {state === 'Sign Up' ? 'sign up' : 'log in'} to book appointment</p>
+        <p className="text-2xl font-semibold">{isSignUp ? 'Create Account' : 'Login'}</p>
+        <p className="mb-2">Please {isSignUp ? 'sign up' : 'log in'} to book appointment</p>
 
-        {state === 'Sign Up' && (
+        {/* Full Name for Sign Up */}
+        {isSignUp && (
           <div className="w-full">
             <p>Full Name</p>
             <input
@@ -106,30 +107,33 @@ const Login = () => {
           type="submit"
           className="bg-primary text-white w-full py-2 my-2 rounded-md text-base hover:opacity-90 transition"
         >
-          {state === 'Sign Up' ? 'Create Account' : 'Login'}
+          {isSignUp ? 'Create Account' : 'Login'}
         </button>
 
-        {state === 'Sign Up' ? (
-          <p>
-            Already have an account?{' '}
-            <span
-              onClick={() => setState('Login')}
-              className="text-primary underline cursor-pointer"
-            >
-              Login here
-            </span>
-          </p>
-        ) : (
-          <p>
-            Create a new account?{' '}
-            <span
-              onClick={() => setState('Sign Up')}
-              className="text-primary underline cursor-pointer"
-            >
-              Click here
-            </span>
-          </p>
-        )}
+        {/* Toggle Between Login and Signup */}
+        <p className="text-center">
+          {isSignUp ? (
+            <>
+              Already have an account?{' '}
+              <span
+                onClick={() => setIsSignUp(false)}
+                className="text-blue-500 underline cursor-pointer hover:text-blue-600"
+              >
+                Login here
+              </span>
+            </>
+          ) : (
+            <>
+              Create a new account?{' '}
+              <span
+                onClick={() => setIsSignUp(true)}
+                className="text-blue-500 underline cursor-pointer hover:text-blue-600"
+              >
+                Click here
+              </span>
+            </>
+          )}
+        </p>
       </div>
     </form>
   );
