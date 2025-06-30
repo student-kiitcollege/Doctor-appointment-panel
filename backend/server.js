@@ -13,10 +13,12 @@ const app = express();
 connectDB();
 connectCloudinary();
 
-// ✅ CORS Configuration (updated to use your actual frontend)
+// ✅ CORS Configuration (updated to allow frontend + admin)
 const allowedOrigins = [
-  "https://doctor-appointment-panel.vercel.app",  // ✅ your frontend (NO slash at end)
-  "http://localhost:5174"                          // ✅ for local development
+  "https://doctor-appointment-panel.vercel.app",       // Admin
+  "https://doctor-appointment-panel-user.vercel.app",  // Frontend 👈 added
+  "http://localhost:5173",                             // Frontend dev
+  "http://localhost:5174",                             // Admin dev
 ];
 
 app.use(cors({
@@ -28,25 +30,25 @@ app.use(cors({
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
+  allowedHeaders: ["Content-Type", "Authorization", "token", "dtoken"],
+  credentials: true,
 }));
 
-// ✅ Handle preflight requests
+// ✅ Preflight requests
 app.options("*", cors());
 
 // ✅ Middleware
 app.use(express.json());
 
-// ✅ API Routes
+// ✅ Routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 
-// ✅ Health check route
+// ✅ Health check
 app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-// ✅ Export for Vercel Serverless Function
+// ✅ Export for Vercel
 export default app;
