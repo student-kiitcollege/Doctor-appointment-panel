@@ -17,7 +17,6 @@ const Appointment = () => {
   } = useContext(AppContext);
 
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
   const [docInfo, setDocInfo] = useState(null);
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
@@ -81,13 +80,33 @@ const Appointment = () => {
       return navigate("/login");
     }
 
-    const date = docSlots[slotIndex][0].datetime;
+    if (!slotTime) {
+      toast.warning("Please select a time slot");
+      return;
+    }
+
+    const date = docSlots[slotIndex][0]?.datetime;
+    if (!date) {
+      toast.error("Invalid date selected");
+      return;
+    }
+
     const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
+
+    // Decode userId from token
+    let userId = null;
+    try {
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      userId = decodedToken.id;
+    } catch (err) {
+      toast.error("Invalid token. Please login again.");
+      return navigate("/login");
+    }
 
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
-        { docId, slotDate, slotTime },
+        { userId, docId, slotDate, slotTime },
         {
           headers: {
             Authorization: `Bearer ${token}`,
