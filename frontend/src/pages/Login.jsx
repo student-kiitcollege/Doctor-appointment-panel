@@ -16,32 +16,33 @@ const Login = () => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
+    if (!email.trim() || !password.trim() || (state === 'Sign Up' && !name.trim())) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
     try {
       let response;
 
       if (state === 'Sign Up') {
         response = await axios.post(`${backendUrl}/api/user/register`, {
-          name,
-          email,
-          password,
+          name: name.trim(),
+          email: email.trim(),
+          password: password.trim(),
         });
       } else {
         response = await axios.post(`${backendUrl}/api/user/login`, {
-          email,
-          password,
+          email: email.trim(),
+          password: password.trim(),
         });
       }
 
       const { data } = response;
       if (data.success && data.token) {
-        // Save token
         localStorage.setItem('token', data.token);
         setToken(data.token);
-
         toast.success(state === 'Sign Up' ? 'Account created successfully' : 'Login successful');
-
-        // Navigate to homepage or dashboard
-        navigate('/my-appointments'); // ✅ Update this route as per your app
+        navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
       }
@@ -53,7 +54,7 @@ const Login = () => {
 
   useEffect(() => {
     if (token) {
-      navigate('/'); // or navigate('/my-appointments');
+      navigate('/');
     }
   }, [token, navigate]);
 

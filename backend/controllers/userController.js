@@ -11,34 +11,50 @@ const stripeInstance = stripe(process.env.STRIPE_SECRET_KEY);
 
 // API to register user
 const registerUser = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-        if (!name || !email || !password) {
-            return res.json({ success: false, message: 'Missing Details' });
-        }
-
-        if (!validator.isEmail(email)) {
-            return res.json({ success: false, message: "Please enter a valid email" });
-        }
-
-        if (password.length < 8) {
-            return res.json({ success: false, message: "Please enter a strong password" });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const newUser = new userModel({ name, email, password: hashedPassword });
-        const user = await newUser.save();
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-
-        res.json({ success: true, token });
-
-    } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+    // Validate inputs
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Missing details' });
     }
+
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ success: false, message: "Please enter a valid email" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters long" });
+    }
+
+    // Check if user already exists
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: "User already registered with this email" });
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Save new user
+    const newUser = new userModel({ name, email, password: hashedPassword });
+    const savedUser = await newUser.save();
+
+    // Generate JWT token
+    const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET);
+
+    // Respond with success
+    res.status(201).json({
+      success: true,
+      token,
+      message: "User registered successfully"
+    });
+
+  } catch (error) {
+    console.error("Register Error:", error.message);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 };
 
 // API to login user
