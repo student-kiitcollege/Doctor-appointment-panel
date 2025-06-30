@@ -5,27 +5,41 @@ const authUser = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // ✅ Check for Bearer token
+    // ✅ Check if Authorization header exists and starts with "Bearer "
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ success: false, message: "Authorization header missing or invalid" });
+      return res.status(401).json({
+        success: false,
+        message: "Authorization token missing or invalid format",
+      });
     }
 
     const token = authHeader.split(" ")[1];
 
-    // ✅ Verify JWT
+    // ✅ Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ Attach user info to request
+    if (!decoded?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token payload",
+      });
+    }
+
+    // ✅ Attach decoded user info to request
     req.user = {
       userId: decoded.id,
-      email: decoded.email,
-      role: "user"
+      email: decoded.email || null,
     };
 
     next();
   } catch (error) {
-    console.error("User Auth Error:", error.message);
-    return res.status(401).json({ success: false, message: "Unauthorized: " + error.message });
+    console.error("🔒 Auth Middleware Error:", error.message);
+
+    // Send unauthorized response
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: " + (error.name === "JsonWebTokenError" ? "Invalid token" : error.message),
+    });
   }
 };
 
