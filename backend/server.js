@@ -15,7 +15,7 @@ connectCloudinary();
 
 // ✅ CORS configuration (must come early)
 const allowedOrigins = [
-  "https://doctor-appointment-panel1.vercel.app",  // your frontend
+  "https://doctor-appointment-panel.vercel.app/",  // your frontend
   "http://localhost:5174"                           // local dev
 ];
 
