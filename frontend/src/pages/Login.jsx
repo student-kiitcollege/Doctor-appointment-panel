@@ -1,17 +1,17 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [isSignUp, setIsSignUp] = useState(false); // ✅ use boolean for simplicity
+  const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const navigate = useNavigate();
-  const { backendUrl, token, setToken } = useContext(AppContext);
+  const { backendUrl, setToken } = useContext(AppContext); // ✅ don't check token here
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
@@ -24,6 +24,7 @@ const Login = () => {
           toast.error("All fields are required");
           return;
         }
+
         response = await axios.post(`${backendUrl}/api/user/register`, {
           name,
           email,
@@ -41,7 +42,9 @@ const Login = () => {
       if (data.success && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        toast.success(isSignUp ? "Account created successfully" : "Login successful");
+        toast.success(isSignUp ? "Account created" : "Login successful");
+
+        // ✅ Navigate only after successful login/signup
         navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
@@ -52,19 +55,12 @@ const Login = () => {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      navigate('/');
-    }
-  }, [token]);
-
   return (
     <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center justify-center">
       <div className="flex flex-col gap-3 p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-[#5E5E5E] text-sm shadow-lg bg-white">
         <p className="text-2xl font-semibold">{isSignUp ? 'Create Account' : 'Login'}</p>
         <p className="mb-2">Please {isSignUp ? 'sign up' : 'log in'} to book appointment</p>
 
-        {/* Full Name for Sign Up */}
         {isSignUp && (
           <div className="w-full">
             <p>Full Name</p>
@@ -110,7 +106,7 @@ const Login = () => {
           {isSignUp ? 'Create Account' : 'Login'}
         </button>
 
-        {/* Toggle Between Login and Signup */}
+        {/* Toggle section */}
         <p className="text-center">
           {isSignUp ? (
             <>
