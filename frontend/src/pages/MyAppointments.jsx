@@ -13,7 +13,6 @@ const MyAppointments = () => {
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-  // Format date: "20_01_2000" -> "20 Jan 2000"
   const slotDateFormat = (slotDate) => {
     const dateArray = slotDate.split('_');
     const day = dateArray[0];
@@ -25,8 +24,11 @@ const MyAppointments = () => {
   const getUserAppointments = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/appointments`, {
-        headers: { token }
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
+
       if (data.success) {
         setAppointments(data.appointments.reverse());
       } else {
@@ -34,15 +36,21 @@ const MyAppointments = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong");
+      toast.error("Unauthorized. Please login again.");
+      navigate("/login");
     }
   };
 
   const cancelAppointment = async (appointmentId) => {
     try {
-      const { data } = await axios.post(`${backendUrl}/api/user/cancel-appointment`, { appointmentId }, {
-        headers: { token }
+      const { data } = await axios.post(`${backendUrl}/api/user/cancel-appointment`, {
+        appointmentId
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
+
       if (data.success) {
         toast.success(data.message);
         getUserAppointments();
@@ -73,15 +81,15 @@ const MyAppointments = () => {
           appointments.map((item, index) => (
             <div key={index} className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-4 border-b">
               <div>
-                <img className="w-36 bg-[#EAEFFF] rounded-md" src={item.docData.image || assets.default_avatar} alt="Doctor" />
+                <img className="w-36 bg-[#EAEFFF] rounded-md" src={item.docData?.image || assets.default_avatar} alt="Doctor" />
               </div>
 
               <div className="flex-1 text-sm text-[#5E5E5E]">
-                <p className="text-[#262626] text-base font-semibold">{item.docData.name}</p>
-                <p>{item.docData.speciality}</p>
+                <p className="text-[#262626] text-base font-semibold">{item.docData?.name}</p>
+                <p>{item.docData?.speciality}</p>
                 <p className="text-[#464646] font-medium mt-1">Address:</p>
-                <p>{item.docData.address.line1}</p>
-                <p>{item.docData.address.line2}</p>
+                <p>{item.docData?.address?.line1}</p>
+                <p>{item.docData?.address?.line2}</p>
                 <p className="mt-1">
                   <span className="text-sm text-[#3C3C3C] font-medium">Date & Time:</span>{' '}
                   {slotDateFormat(item.slotDate)} | {item.slotTime}
