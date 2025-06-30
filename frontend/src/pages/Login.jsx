@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [state, setState] = useState('Sign Up');
+  const [state, setState] = useState('Sign Up'); // or 'Login'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,39 +15,39 @@ const Login = () => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-
-    if (!email.trim() || !password.trim() || (state === 'Sign Up' && !name.trim())) {
-      toast.error("Please fill all required fields");
-      return;
-    }
+    console.log("Form submitting...");
 
     try {
       let response;
-
       if (state === 'Sign Up') {
+        if (!name || !email || !password) {
+          toast.error("All fields are required");
+          return;
+        }
         response = await axios.post(`${backendUrl}/api/user/register`, {
-          name: name.trim(),
-          email: email.trim(),
-          password: password.trim(),
+          name,
+          email,
+          password
         });
       } else {
         response = await axios.post(`${backendUrl}/api/user/login`, {
-          email: email.trim(),
-          password: password.trim(),
+          email,
+          password
         });
       }
 
       const { data } = response;
+
       if (data.success && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        toast.success(state === 'Sign Up' ? 'Account created successfully' : 'Login successful');
+        toast.success(state === 'Sign Up' ? "Account created successfully" : "Login successful");
         navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
       }
     } catch (error) {
-      console.error(error);
+      console.error("Auth Error:", error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Something went wrong');
     }
   };
@@ -56,7 +56,7 @@ const Login = () => {
     if (token) {
       navigate('/');
     }
-  }, [token, navigate]);
+  }, [token]);
 
   return (
     <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center justify-center">
