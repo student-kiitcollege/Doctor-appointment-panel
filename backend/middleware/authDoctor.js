@@ -1,19 +1,32 @@
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 
-// doctor authentication middleware
+// Doctor authentication middleware
 const authDoctor = async (req, res, next) => {
-    const { dtoken } = req.headers
-    if (!dtoken) {
-        return res.json({ success: false, message: 'Not Authorized Login Again' })
+  try {
+    const authHeader = req.headers.authorization;
+
+    // ✅ Validate token presence
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ success: false, message: "Authorization header missing or invalid" });
     }
-    try {
-        const token_decode = jwt.verify(dtoken, process.env.JWT_SECRET)
-        req.body.docId = token_decode.id
-        next()
-    } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
-    }
-}
+
+    const token = authHeader.split(" ")[1];
+
+    // ✅ Verify JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // ✅ Attach doctor ID to request for downstream use
+    req.user = {
+      docId: decoded.id,
+      email: decoded.email,
+      role: "doctor"
+    };
+
+    next();
+  } catch (error) {
+    console.error("Doctor Auth Error:", error.message);
+    return res.status(401).json({ success: false, message: "Unauthorized: " + error.message });
+  }
+};
 
 export default authDoctor;

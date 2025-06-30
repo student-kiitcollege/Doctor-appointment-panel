@@ -13,12 +13,18 @@ const AdminContextProvider = (props) => {
   const [doctors, setDoctors] = useState([]);
   const [dashData, setDashData] = useState(false);
 
+  // Axios config with Authorization header
+  const authHeaders = {
+    headers: {
+      Authorization: `Bearer ${aToken}`
+    },
+    withCredentials: true
+  };
+
   // Fetch all doctors
   const getAllDoctors = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/admin/all-doctors`, {
-        headers: { aToken },
-      });
+      const { data } = await axios.get(`${backendUrl}/api/admin/all-doctors`, authHeaders);
 
       if (data.success) {
         setDoctors(data.doctors);
@@ -37,7 +43,7 @@ const AdminContextProvider = (props) => {
       const { data } = await axios.post(
         `${backendUrl}/api/admin/change-availability`,
         { docId },
-        { headers: { aToken } }
+        authHeaders
       );
 
       if (data.success) {
@@ -55,9 +61,7 @@ const AdminContextProvider = (props) => {
   // Fetch all appointments
   const getAllAppointments = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/admin/appointments`, {
-        headers: { aToken },
-      });
+      const { data } = await axios.get(`${backendUrl}/api/admin/appointments`, authHeaders);
 
       if (data.success) {
         setAppointments(data.appointments.reverse());
@@ -76,7 +80,7 @@ const AdminContextProvider = (props) => {
       const { data } = await axios.post(
         `${backendUrl}/api/admin/cancel-appointment`,
         { appointmentId },
-        { headers: { aToken } }
+        authHeaders
       );
 
       if (data.success) {
@@ -94,9 +98,7 @@ const AdminContextProvider = (props) => {
   // Fetch dashboard data
   const getDashData = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/admin/dashboard`, {
-        headers: { aToken },
-      });
+      const { data } = await axios.get(`${backendUrl}/api/admin/dashboard`, authHeaders);
 
       if (data.success) {
         setDashData(data.dashData);

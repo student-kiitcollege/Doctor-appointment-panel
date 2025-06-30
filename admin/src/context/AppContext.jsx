@@ -8,27 +8,48 @@ const AppContextProvider = (props) => {
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-  // Format slot date from "20_01_2000" => "20 Jan 2000"
+  // ✅ Format slot date from "20_01_2000" => "20 Jan 2000"
   const slotDateFormat = (slotDate) => {
-    const dateArray = slotDate.split("_");
-    const day = dateArray[0];
-    const monthIndex = parseInt(dateArray[1], 10) - 1; // adjust month to 0-based
-    const year = dateArray[2];
-    return `${day} ${months[monthIndex]} ${year}`;
+    try {
+      if (!slotDate) return "Invalid Date";
+
+      const dateArray = slotDate.split("_");
+      if (dateArray.length !== 3) return "Invalid Date";
+
+      const day = dateArray[0];
+      const monthIndex = parseInt(dateArray[1], 10) - 1;
+      const year = dateArray[2];
+
+      if (monthIndex < 0 || monthIndex > 11) return "Invalid Date";
+
+      return `${day} ${months[monthIndex]} ${year}`;
+    } catch (error) {
+      console.error("slotDateFormat error:", error.message);
+      return "Invalid Date";
+    }
   };
 
-  // Calculate age from DOB (e.g., "2000-01-20")
+  // ✅ Calculate age from DOB (e.g., "2000-01-20")
   const calculateAge = (dob) => {
-    const today = new Date();
-    const birthDate = new Date(dob);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
+    try {
+      if (!dob) return "N/A";
 
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+      const birthDate = new Date(dob);
+      if (isNaN(birthDate)) return "Invalid DOB";
+
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      return age;
+    } catch (error) {
+      console.error("calculateAge error:", error.message);
+      return "Invalid DOB";
     }
-
-    return age;
   };
 
   const value = {

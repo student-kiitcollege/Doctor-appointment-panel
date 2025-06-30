@@ -12,12 +12,18 @@ const DoctorContextProvider = (props) => {
   const [dashData, setDashData] = useState(false);
   const [profileData, setProfileData] = useState(false);
 
-  // Get all appointments for doctor
+  // ✅ Config for all authenticated requests
+  const authHeaders = {
+    headers: {
+      Authorization: `Bearer ${dToken}`
+    },
+    withCredentials: true
+  };
+
+  // ✅ Get all appointments for doctor
   const getAppointments = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/doctor/appointments`, {
-        headers: { dToken },
-      });
+      const { data } = await axios.get(`${backendUrl}/api/doctor/appointments`, authHeaders);
 
       if (data.success) {
         setAppointments(data.appointments.reverse());
@@ -30,12 +36,10 @@ const DoctorContextProvider = (props) => {
     }
   };
 
-  // Get doctor's profile
+  // ✅ Get doctor's profile
   const getProfileData = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/doctor/profile`, {
-        headers: { dToken },
-      });
+      const { data } = await axios.get(`${backendUrl}/api/doctor/profile`, authHeaders);
 
       if (data.success) {
         setProfileData(data.profileData);
@@ -48,13 +52,13 @@ const DoctorContextProvider = (props) => {
     }
   };
 
-  // Cancel appointment
+  // ✅ Cancel appointment
   const cancelAppointment = async (appointmentId) => {
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/doctor/cancel-appointment`,
         { appointmentId },
-        { headers: { dToken } }
+        authHeaders
       );
 
       if (data.success) {
@@ -70,13 +74,13 @@ const DoctorContextProvider = (props) => {
     }
   };
 
-  // Complete appointment
+  // ✅ Complete appointment
   const completeAppointment = async (appointmentId) => {
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/doctor/complete-appointment`,
         { appointmentId },
-        { headers: { dToken } }
+        authHeaders
       );
 
       if (data.success) {
@@ -92,12 +96,10 @@ const DoctorContextProvider = (props) => {
     }
   };
 
-  // Load dashboard data
+  // ✅ Load dashboard data
   const getDashData = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/doctor/dashboard`, {
-        headers: { dToken },
-      });
+      const { data } = await axios.get(`${backendUrl}/api/doctor/dashboard`, authHeaders);
 
       if (data.success) {
         setDashData(data.dashData);
