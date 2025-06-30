@@ -9,14 +9,14 @@ import adminRouter from "./routes/adminRoute.js";
 
 const app = express();
 
-// ✅ Connect database and cloud
+// ✅ Connect to MongoDB and Cloudinary
 connectDB();
 connectCloudinary();
 
-// ✅ CORS configuration (must come early)
+// ✅ CORS Configuration (updated to use your actual frontend)
 const allowedOrigins = [
-  "https://doctor-appointment-panel.vercel.app/",  // your frontend
-  "http://localhost:5174"                           // local dev
+  "https://doctor-appointment-panel.vercel.app",  // ✅ your frontend (NO slash at end)
+  "http://localhost:5174"                          // ✅ for local development
 ];
 
 app.use(cors({
@@ -24,7 +24,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error("Not allowed by CORS: " + origin));
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -32,21 +32,21 @@ app.use(cors({
   credentials: true
 }));
 
-// ✅ Handle OPTIONS requests early
+// ✅ Handle preflight requests
 app.options("*", cors());
 
-// ✅ Other middlewares
+// ✅ Middleware
 app.use(express.json());
 
-// ✅ Routes
+// ✅ API Routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 
-// ✅ Health check
+// ✅ Health check route
 app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-// ✅ Export for Vercel
+// ✅ Export for Vercel Serverless Function
 export default app;
