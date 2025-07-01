@@ -13,7 +13,7 @@ const AppContextProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
-  // ✅ Logout function
+  // Logout function
   const logoutUser = () => {
     setToken("");
     setUserData(null);
@@ -21,7 +21,7 @@ const AppContextProvider = ({ children }) => {
     toast.info("You have been logged out");
   };
 
-  // ✅ Fetch doctors list
+  // Fetch doctors list
   const getDoctorsData = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/doctor/list`);
@@ -36,15 +36,16 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Fetch user profile
-  const loadUserProfileData = async () => {
-    if (!token || isLoadingProfile) return;
+  // Fetch user profile, accepts optional token param to avoid race condition
+  const loadUserProfileData = async (tokenParam) => {
+    const authToken = tokenParam || token;
+    if (!authToken || isLoadingProfile) return;
 
     setIsLoadingProfile(true);
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 
@@ -70,16 +71,23 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // 🔄 Load doctor list on mount
+  // Helper to set token and immediately load profile with that token
+  const handleLogin = (newToken) => {
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
+    loadUserProfileData(newToken);
+  };
+
+  // Load doctors list on mount
   useEffect(() => {
     getDoctorsData();
   }, []);
 
-  // 🔄 On token change
+  // On token change, sync localStorage and load profile if no param passed explicitly
   useEffect(() => {
     if (token) {
       localStorage.setItem("token", token);
-      loadUserProfileData(); // fetch user info if token is valid
+      loadUserProfileData(); // only call if no explicit param used
     } else {
       localStorage.removeItem("token");
       setUserData(null);
@@ -97,6 +105,7 @@ const AppContextProvider = ({ children }) => {
     setUserData,
     loadUserProfileData,
     logoutUser,
+    handleLogin, // expose handleLogin for login component
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

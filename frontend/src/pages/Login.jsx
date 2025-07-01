@@ -11,7 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const navigate = useNavigate();
-  const { backendUrl, setToken, loadUserProfileData } = useContext(AppContext);
+  const { backendUrl, handleLogin } = useContext(AppContext);  // Use handleLogin from context
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
@@ -45,9 +45,10 @@ const Login = () => {
       const { data } = response;
 
       if (data.success && data.token) {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        await loadUserProfileData(); // ✅ Immediately fetch user profile
+        // Instead of setToken + loadUserProfileData separately,
+        // use handleLogin that does both correctly
+        handleLogin(data.token);
+
         toast.success(isSignUp ? "Account created successfully" : "Login successful");
 
         navigate('/my-appointments');
