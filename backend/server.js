@@ -13,20 +13,22 @@ const app = express();
 connectDB();
 connectCloudinary();
 
-// ✅ CORS Configuration (updated to allow frontend + admin)
+// ✅ Allowed frontend and admin origins
 const allowedOrigins = [
   "https://doctor-appointment-panel.vercel.app",       // Admin
-  "https://doctor-appointment-panel-user.vercel.app",  // Frontend 👈 added
-  "http://localhost:5173",                             // Frontend dev
-  "http://localhost:5174",                             // Admin dev
+  "https://doctor-appointment-panel-user.vercel.app",  // User Frontend
+  "http://localhost:5173",                             // Dev Frontend
+  "http://localhost:5174",                             // Dev Admin
 ];
 
+// ✅ CORS config with origin checking
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS: " + origin));
+      console.warn("❌ CORS blocked origin:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -34,21 +36,21 @@ app.use(cors({
   credentials: true,
 }));
 
-// ✅ Preflight requests
+// ✅ Preflight response
 app.options("*", cors());
 
 // ✅ Middleware
 app.use(express.json());
 
-// ✅ Routes
+// ✅ API Routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 
-// ✅ Health check
+// ✅ Health Check
 app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-// ✅ Export for Vercel
+// ✅ Export Express App for Vercel
 export default app;
