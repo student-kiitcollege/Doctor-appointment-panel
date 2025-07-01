@@ -24,11 +24,17 @@ const Appointment = () => {
 
   const navigate = useNavigate();
 
+  // ✅ Fetch selected doctor info
   const fetchDocInfo = () => {
     const doc = doctors.find((doc) => doc._id === docId);
+    if (!doc) {
+      toast.error("Doctor not found");
+      return navigate("/doctors");
+    }
     setDocInfo(doc);
   };
 
+  // ✅ Generate 7 days of available time slots
   const getAvailableSlots = () => {
     setDocSlots([]);
     const today = new Date();
@@ -41,7 +47,7 @@ const Appointment = () => {
       endTime.setHours(21, 0, 0, 0);
 
       if (i === 0) {
-        currentDate.setHours(currentDate.getHours() >= 10 ? currentDate.getHours() + 1 : 10);
+        currentDate.setHours(Math.max(currentDate.getHours() + 1, 10));
         currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0);
       } else {
         currentDate.setHours(10, 0, 0, 0);
@@ -53,6 +59,7 @@ const Appointment = () => {
         const formattedTime = currentDate.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
+          hour12: true,
         });
 
         const slotDate = `${currentDate.getDate()}_${currentDate.getMonth() + 1}_${currentDate.getFullYear()}`;
@@ -74,9 +81,10 @@ const Appointment = () => {
     }
   };
 
+  // ✅ Book appointment
   const bookAppointment = async () => {
     if (!token) {
-      toast.warning("Login to book appointment");
+      toast.warning("Please login to book an appointment");
       return navigate("/login");
     }
 
@@ -93,13 +101,12 @@ const Appointment = () => {
 
     const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
 
-    // Decode userId from token
     let userId = null;
     try {
       const decodedToken = JSON.parse(atob(token.split(".")[1]));
       userId = decodedToken.id;
     } catch (err) {
-      toast.error("Invalid token. Please login again.");
+      toast.error("Session expired. Please login again.");
       return navigate("/login");
     }
 
@@ -119,14 +126,15 @@ const Appointment = () => {
         getDoctosData();
         navigate("/my-appointments");
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to book appointment");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to book appointment");
+      console.error("Booking Error:", error);
+      toast.error("Something went wrong");
     }
   };
 
+  // Load doctor info once doctors are fetched
   useEffect(() => {
     if (doctors.length > 0) fetchDocInfo();
   }, [doctors, docId]);
@@ -139,7 +147,7 @@ const Appointment = () => {
 
   return (
     <div>
-      {/* Doctor Details */}
+      {/* Doctor Info */}
       <div className="flex flex-col sm:flex-row gap-4">
         <img className="bg-primary w-full sm:max-w-72 rounded-lg" src={docInfo.image} alt="" />
         <div className="flex-1 border border-[#ADADAD] rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0">
@@ -165,10 +173,10 @@ const Appointment = () => {
         </div>
       </div>
 
-      {/* Booking Slots */}
+      {/* Slot Selection */}
       <div className="sm:ml-72 sm:pl-4 mt-8 font-medium text-[#565656]">
         <p>Booking slots</p>
-        <div className="flex gap-3 items-center w-full overflow-x-scroll mt-4">
+        <div className="flex gap-3 items-center w-full overflow-x-auto mt-4">
           {docSlots.map((slots, index) => (
             <div
               key={index}
@@ -183,7 +191,7 @@ const Appointment = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-3 w-full overflow-x-scroll mt-4">
+        <div className="flex items-center gap-3 w-full overflow-x-auto mt-4">
           {docSlots[slotIndex]?.map((slot, index) => (
             <p
               key={index}
