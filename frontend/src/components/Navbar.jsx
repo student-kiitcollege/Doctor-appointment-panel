@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { assets } from '../assets/assets';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
@@ -6,7 +6,14 @@ import { AppContext } from '../context/AppContext';
 const Navbar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
-  const { token, userData, logoutUser } = useContext(AppContext);
+  const { token, userData, logoutUser, loadUserProfileData } = useContext(AppContext);
+
+  // Ensure user profile is loaded after token change (especially after login)
+  useEffect(() => {
+    if (token && !userData) {
+      loadUserProfileData();
+    }
+  }, [token]);
 
   return (
     <div className='flex items-center justify-between text-sm py-4 mb-5 border-b border-b-[#ADADAD] px-4 sm:px-10'>

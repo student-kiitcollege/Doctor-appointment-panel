@@ -13,7 +13,8 @@ const Appointment = () => {
     currencySymbol,
     backendUrl,
     token,
-    getDoctorsData, // ✅ Corrected function name
+    getDoctorsData,
+    loadUserProfileData,
   } = useContext(AppContext);
 
   const [docInfo, setDocInfo] = useState(null);
@@ -81,7 +82,7 @@ const Appointment = () => {
   const bookAppointment = async () => {
     if (!token) {
       toast.warning("Please login to book an appointment");
-      return navigate("/login");
+      return navigate("/login", { state: { from: `/appointment/${docId}` } });
     }
 
     if (!slotTime) {
@@ -119,7 +120,8 @@ const Appointment = () => {
 
       if (data.success) {
         toast.success("Appointment booked successfully!");
-        getDoctorsData(); // ✅ call the correct function
+        await getDoctorsData(); // Refresh doctor slots
+        await loadUserProfileData(); // Refresh user appointment list
         navigate("/my-appointments");
       } else {
         toast.error(data.message || "Failed to book appointment");

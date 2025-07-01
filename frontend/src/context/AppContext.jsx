@@ -11,6 +11,7 @@ const AppContextProvider = ({ children }) => {
   const [doctors, setDoctors] = useState([]);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [userData, setUserData] = useState(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   // ✅ Logout function
   const logoutUser = () => {
@@ -35,10 +36,11 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Fetch user profile if token is valid
+  // ✅ Fetch user profile
   const loadUserProfileData = async () => {
-    if (!token) return;
+    if (!token || isLoadingProfile) return;
 
+    setIsLoadingProfile(true);
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
         headers: {
@@ -63,6 +65,8 @@ const AppContextProvider = ({ children }) => {
         setUserData(null);
         toast.error("Unable to load user profile");
       }
+    } finally {
+      setIsLoadingProfile(false);
     }
   };
 
@@ -71,14 +75,14 @@ const AppContextProvider = ({ children }) => {
     getDoctorsData();
   }, []);
 
-  // 🔄 On token change, sync localStorage and load user
+  // 🔄 On token change
   useEffect(() => {
     if (token) {
       localStorage.setItem("token", token);
-      loadUserProfileData();
+      loadUserProfileData(); // fetch user info if token is valid
     } else {
-      setUserData(null);
       localStorage.removeItem("token");
+      setUserData(null);
     }
   }, [token]);
 
