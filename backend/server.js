@@ -9,48 +9,50 @@ import adminRouter from "./routes/adminRoute.js";
 
 const app = express();
 
-// ✅ Connect to MongoDB and Cloudinary
+// ✅ Connect DB and Cloudinary
 connectDB();
 connectCloudinary();
 
-// ✅ Allowed frontend and admin origins
+// ✅ Allowed Origins (Dev + Production)
 const allowedOrigins = [
-  "https://doctor-appointment-panel-admin.vercel.app",       // Admin
-  "https://doctor-appointment-panel-user.vercel.app",  // User Frontend
-  "http://localhost:5173",                             // Dev Frontend
-  "http://localhost:5174",                             // Dev Admin
+  "https://doctor-appointment-panel-admin.vercel.app",  // Admin Panel (Prod)
+  "https://doctor-appointment-panel-user.vercel.app",   // User Panel (Prod)
+  "http://localhost:5173",                              // User (Dev)
+  "http://localhost:5174",                              // Admin (Dev)
 ];
 
-// ✅ CORS config with origin checking
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn("❌ CORS blocked origin:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "token", "dtoken"],
-  credentials: true,
-}));
+// ✅ CORS Middleware (Dynamic)
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn("❌ CORS blocked origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "token", "dtoken"],
+    credentials: true,
+  })
+);
 
-// ✅ Preflight response
+// ✅ Handle preflight (OPTIONS)
 app.options("*", cors());
 
-// ✅ Middleware
+// ✅ JSON Parsing Middleware
 app.use(express.json());
 
-// ✅ API Routes
+// ✅ Routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 
 // ✅ Health Check
 app.get("/", (req, res) => {
-  res.send("API Working");
+  res.status(200).send("API Working ✅");
 });
 
-// ✅ Export Express App for Vercel
+// ✅ Export app for Vercel
 export default app;
