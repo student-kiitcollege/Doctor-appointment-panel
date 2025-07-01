@@ -12,8 +12,8 @@ const AppContextProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [userData, setUserData] = useState(null);
 
-  // ✅ Fetch list of doctors
-  const getDoctosData = async () => {
+  // ✅ Fetch doctors list
+  const getDoctorsData = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/doctor/list`);
       if (data.success) {
@@ -22,12 +22,12 @@ const AppContextProvider = ({ children }) => {
         toast.error(data.message || "Failed to load doctors");
       }
     } catch (error) {
-      console.error("Error loading doctors:", error.message);
-      toast.error("Unable to load doctors");
+      console.error("Doctor Fetch Error:", error);
+      toast.error("Error fetching doctors");
     }
   };
 
-  // ✅ Fetch user profile using token
+  // ✅ Fetch user profile if token exists
   const loadUserProfileData = async () => {
     if (!token) return;
 
@@ -40,23 +40,24 @@ const AppContextProvider = ({ children }) => {
 
       if (data.success) {
         setUserData(data.userData);
+        console.log("✅ User Profile Fetched:", data.userData);
       } else {
         setUserData(null);
         toast.error(data.message || "Failed to load profile");
       }
     } catch (error) {
-      console.error("Error loading profile:", error.message);
+      console.error("User Profile Error:", error);
       setUserData(null);
       toast.error("Unable to load user profile");
     }
   };
 
-  // 🔄 Load doctors when app starts
+  // 🔄 Load doctors on mount
   useEffect(() => {
-    getDoctosData();
+    getDoctorsData();
   }, []);
 
-  // 🔄 Sync token and fetch user on token change
+  // 🔄 Handle token & profile changes
   useEffect(() => {
     if (token) {
       localStorage.setItem("token", token);
@@ -69,7 +70,7 @@ const AppContextProvider = ({ children }) => {
 
   const value = {
     doctors,
-    getDoctosData,
+    getDoctorsData,
     currencySymbol,
     backendUrl,
     token,
