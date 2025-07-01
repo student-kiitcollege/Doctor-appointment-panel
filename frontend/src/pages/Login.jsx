@@ -11,7 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const navigate = useNavigate();
-  const { backendUrl, setToken } = useContext(AppContext); // ✅ don't check token here
+  const { backendUrl, setToken } = useContext(AppContext);
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
@@ -31,6 +31,11 @@ const Login = () => {
           password,
         });
       } else {
+        if (!email || !password) {
+          toast.error("Email and password are required");
+          return;
+        }
+
         response = await axios.post(`${backendUrl}/api/user/login`, {
           email,
           password,
@@ -42,9 +47,9 @@ const Login = () => {
       if (data.success && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        toast.success(isSignUp ? "Account created" : "Login successful");
+        toast.success(isSignUp ? "Account created successfully" : "Login successful");
 
-        // ✅ Navigate only after successful login/signup
+        // Redirect after login/signup
         navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
@@ -106,7 +111,6 @@ const Login = () => {
           {isSignUp ? 'Create Account' : 'Login'}
         </button>
 
-        {/* Toggle section */}
         <p className="text-center">
           {isSignUp ? (
             <>
