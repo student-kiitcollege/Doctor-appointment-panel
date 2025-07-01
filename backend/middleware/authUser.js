@@ -5,7 +5,6 @@ const authUser = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // ✅ Check if Authorization header exists and starts with "Bearer "
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
@@ -15,7 +14,6 @@ const authUser = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    // ✅ Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!decoded?.id) {
@@ -25,9 +23,9 @@ const authUser = async (req, res, next) => {
       });
     }
 
-    // ✅ Attach decoded user info to request
+    // Attach decoded user info to request as req.user.id (match JWT payload)
     req.user = {
-      userId: decoded.id,
+      id: decoded.id,
       email: decoded.email || null,
     };
 
@@ -35,10 +33,11 @@ const authUser = async (req, res, next) => {
   } catch (error) {
     console.error("🔒 Auth Middleware Error:", error.message);
 
-    // Send unauthorized response
     return res.status(401).json({
       success: false,
-      message: "Unauthorized: " + (error.name === "JsonWebTokenError" ? "Invalid token" : error.message),
+      message:
+        "Unauthorized: " +
+        (error.name === "JsonWebTokenError" ? "Invalid token" : error.message),
     });
   }
 };
