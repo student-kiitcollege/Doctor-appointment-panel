@@ -8,7 +8,6 @@ import { assets } from '../assets/assets';
 const MyAppointments = () => {
   const { backendUrl, token } = useContext(AppContext);
   const navigate = useNavigate();
-
   const [appointments, setAppointments] = useState([]);
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -29,13 +28,15 @@ const MyAppointments = () => {
         }
       });
 
+      console.log("Fetched Appointments:", data); // 🔍 For debugging
+
       if (data.success) {
         setAppointments(data.appointments.reverse());
       } else {
         toast.error(data.message || "Failed to load appointments");
       }
     } catch (error) {
-      console.error(error);
+      console.error("Appointment Fetch Error:", error);
       toast.error("Unauthorized. Please login again.");
       navigate("/login");
     }
@@ -53,27 +54,30 @@ const MyAppointments = () => {
 
       if (data.success) {
         toast.success(data.message);
-        getUserAppointments();
+        getUserAppointments(); // Reload after cancel
       } else {
         toast.error(data.message || "Could not cancel appointment");
       }
     } catch (error) {
-      console.error(error);
+      console.error("Cancel Error:", error);
       toast.error("Something went wrong");
     }
   };
 
   useEffect(() => {
     if (token) {
+      console.log("Token found. Fetching appointments...");
       getUserAppointments();
     } else {
+      console.warn("No token found. Redirecting to login...");
       navigate('/login');
     }
   }, [token]);
 
   return (
-    <div>
+    <div className="p-4 sm:p-6 md:p-8">
       <p className="pb-3 mt-12 text-lg font-medium text-gray-600 border-b">My Appointments</p>
+
       <div>
         {appointments.length === 0 ? (
           <p className="text-gray-500 mt-6">No appointments found.</p>
@@ -81,7 +85,11 @@ const MyAppointments = () => {
           appointments.map((item, index) => (
             <div key={index} className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-4 border-b">
               <div>
-                <img className="w-36 bg-[#EAEFFF] rounded-md" src={item.docData?.image || assets.default_avatar} alt="Doctor" />
+                <img
+                  className="w-36 bg-[#EAEFFF] rounded-md"
+                  src={item.docData?.image || assets.default_avatar}
+                  alt="Doctor"
+                />
               </div>
 
               <div className="flex-1 text-sm text-[#5E5E5E]">
