@@ -14,7 +14,6 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validate inputs
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: "Missing details" });
     }
@@ -27,28 +26,25 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Password must be at least 8 characters long" });
     }
 
-    // Check if user already exists
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ success: false, message: "User already registered with this email" });
     }
 
-    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Save new user
     const newUser = new userModel({ name, email, password: hashedPassword });
     const savedUser = await newUser.save();
 
-    // Generate JWT token
     const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET);
 
-    // Respond with success
     res.status(201).json({
       success: true,
       token,
-      message: "User registered successfully",
+      role: "student",
+      email: savedUser.email,
+      message: "Signup successful. Please login."
     });
   } catch (error) {
     console.error("Register Error:", error.message);
@@ -69,7 +65,7 @@ const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-      res.json({ success: true, token });
+      res.json({ success: true, token, role: "student", email: user.email });
     } else {
       res.status(401).json({ success: false, message: "Invalid credentials" });
     }
@@ -79,16 +75,14 @@ const loginUser = async (req, res) => {
   }
 };
 
-// API to get user profile data (protected route)
+// API to get user profile data
 const getProfile = async (req, res) => {
   try {
-    const userId = req.user.id || req.user.userId; // From auth middleware
-
+    const userId = req.user.id || req.user.userId;
     const userData = await userModel.findById(userId).select("-password");
     if (!userData) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-
     res.json({ success: true, userData });
   } catch (error) {
     console.error("Get Profile Error:", error.message);
@@ -96,10 +90,10 @@ const getProfile = async (req, res) => {
   }
 };
 
-// API to update user profile (protected route)
+// API to update user profile
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id || req.user.userId; // From auth middleware
+    const userId = req.user.id || req.user.userId;
     const { name, phone, address, dob, gender } = req.body;
     const imageFile = req.file;
 
@@ -127,10 +121,10 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// API to book appointment (protected route)
+// API to book appointment
 const bookAppointment = async (req, res) => {
   try {
-    const userId = req.user.id || req.user.userId; // From auth middleware
+    const userId = req.user.id || req.user.userId;
     const { docId, slotDate, slotTime } = req.body;
 
     if (!docId || !slotDate || !slotTime) {
@@ -143,7 +137,6 @@ const bookAppointment = async (req, res) => {
     }
 
     let slots_booked = docData.slots_booked || {};
-
     if (slots_booked[slotDate]?.includes(slotTime)) {
       return res.status(409).json({ success: false, message: "Slot Not Available" });
     }
@@ -156,25 +149,21 @@ const bookAppointment = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const userData = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-    };
-
-    const filteredDocData = {
-      _id: docData._id,
-      name: docData.name,
-      specialization: docData.specialization,
-      fees: docData.fees,
-    };
-
     const appointmentData = {
       userId,
       docId,
-      userData,
-      docData: filteredDocData,
+      userData: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+      docData: {
+        _id: docData._id,
+        name: docData.name,
+        specialization: docData.specialization,
+        fees: docData.fees,
+      },
       amount: docData.fees,
       slotTime,
       slotDate,
@@ -193,10 +182,10 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-// API to cancel appointment (protected route)
+// API to cancel appointment
 const cancelAppointment = async (req, res) => {
   try {
-    const userId = req.user.id || req.user.userId; // From auth middleware
+    const userId = req.user.id || req.user.userId;
     const { appointmentId } = req.body;
 
     const appointment = await appointmentModel.findById(appointmentId);
@@ -220,11 +209,10 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
-// API to list user's appointments (protected route)
+// API to list user's appointments
 const listAppointment = async (req, res) => {
   try {
-    const userId = req.user.id || req.user.userId; // From auth middleware
-
+    const userId = req.user.id || req.user.userId;
     const appointments = await appointmentModel.find({ userId });
     res.json({ success: true, appointments });
   } catch (error) {
@@ -232,11 +220,6 @@ const listAppointment = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-// Razorpay payment - keep your implementation here
-// Stripe payment - keep your implementation here
-
-// (Omitted payment functions here for brevity, but keep them same as your current code)
 
 export {
   loginUser,
@@ -246,5 +229,4 @@ export {
   bookAppointment,
   listAppointment,
   cancelAppointment,
-  // ... your other exports for payment
 };
