@@ -11,7 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const navigate = useNavigate();
-  const { backendUrl, setToken } = useContext(AppContext);
+  const { backendUrl, setToken, loadUserProfileData } = useContext(AppContext);
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
@@ -47,9 +47,9 @@ const Login = () => {
       if (data.success && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
+        await loadUserProfileData(); // ✅ Immediately fetch user profile
         toast.success(isSignUp ? "Account created successfully" : "Login successful");
 
-        // Redirect after login/signup
         navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
