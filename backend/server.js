@@ -15,7 +15,7 @@ connectCloudinary();
 
 // ✅ Allowed frontend and admin origins
 const allowedOrigins = [
-  "https://doctor-appointment-panel.vercel.app",       // Admin
+  "https://doctor-appointment-panel-admin.vercel.app",       // Admin
   "https://doctor-appointment-panel-user.vercel.app",  // User Frontend
   "http://localhost:5173",                             // Dev Frontend
   "http://localhost:5174",                             // Dev Admin
