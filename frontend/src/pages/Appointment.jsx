@@ -16,15 +16,14 @@ const Appointment = () => {
     getDoctosData,
   } = useContext(AppContext);
 
-  const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const [docInfo, setDocInfo] = useState(null);
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
 
   const navigate = useNavigate();
+  const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-  // ✅ Fetch selected doctor info
   const fetchDocInfo = () => {
     const doc = doctors.find((doc) => doc._id === docId);
     if (!doc) {
@@ -34,10 +33,9 @@ const Appointment = () => {
     setDocInfo(doc);
   };
 
-  // ✅ Generate 7 days of available time slots
   const getAvailableSlots = () => {
-    setDocSlots([]);
     const today = new Date();
+    const slots = [];
 
     for (let i = 0; i < 7; i++) {
       const currentDate = new Date(today);
@@ -63,11 +61,10 @@ const Appointment = () => {
         });
 
         const slotDate = `${currentDate.getDate()}_${currentDate.getMonth() + 1}_${currentDate.getFullYear()}`;
-        const isSlotAvailable =
-          !docInfo?.slots_booked?.[slotDate] ||
-          !docInfo.slots_booked[slotDate].includes(formattedTime);
+        const isSlotBooked =
+          docInfo?.slots_booked?.[slotDate]?.includes(formattedTime);
 
-        if (isSlotAvailable) {
+        if (!isSlotBooked) {
           timeSlots.push({
             datetime: new Date(currentDate),
             time: formattedTime,
@@ -77,11 +74,12 @@ const Appointment = () => {
         currentDate.setMinutes(currentDate.getMinutes() + 30);
       }
 
-      setDocSlots((prev) => [...prev, timeSlots]);
+      slots.push(timeSlots);
     }
+
+    setDocSlots(slots);
   };
 
-  // ✅ Book appointment
   const bookAppointment = async () => {
     if (!token) {
       toast.warning("Please login to book an appointment");
@@ -93,7 +91,7 @@ const Appointment = () => {
       return;
     }
 
-    const date = docSlots[slotIndex][0]?.datetime;
+    const date = docSlots[slotIndex]?.[0]?.datetime;
     if (!date) {
       toast.error("Invalid date selected");
       return;
@@ -122,7 +120,7 @@ const Appointment = () => {
       );
 
       if (data.success) {
-        toast.success(data.message);
+        toast.success("Appointment booked successfully!");
         getDoctosData();
         navigate("/my-appointments");
       } else {
@@ -130,11 +128,10 @@ const Appointment = () => {
       }
     } catch (error) {
       console.error("Booking Error:", error);
-      toast.error("Something went wrong");
+      toast.error("Something went wrong. Please try again.");
     }
   };
 
-  // Load doctor info once doctors are fetched
   useEffect(() => {
     if (doctors.length > 0) fetchDocInfo();
   }, [doctors, docId]);
@@ -176,6 +173,8 @@ const Appointment = () => {
       {/* Slot Selection */}
       <div className="sm:ml-72 sm:pl-4 mt-8 font-medium text-[#565656]">
         <p>Booking slots</p>
+
+        {/* Date Tabs */}
         <div className="flex gap-3 items-center w-full overflow-x-auto mt-4">
           {docSlots.map((slots, index) => (
             <div
@@ -191,6 +190,7 @@ const Appointment = () => {
           ))}
         </div>
 
+        {/* Time Slots */}
         <div className="flex items-center gap-3 w-full overflow-x-auto mt-4">
           {docSlots[slotIndex]?.map((slot, index) => (
             <p

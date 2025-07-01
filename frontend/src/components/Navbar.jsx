@@ -6,19 +6,13 @@ import { AppContext } from '../context/AppContext';
 const Navbar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
-  const { token, setToken, userData } = useContext(AppContext);
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken('');
-    navigate('/login');
-  };
+  const { token, userData, logoutUser } = useContext(AppContext);
 
   return (
     <div className='flex items-center justify-between text-sm py-4 mb-5 border-b border-b-[#ADADAD] px-4 sm:px-10'>
       <img onClick={() => navigate('/')} className='w-44 cursor-pointer' src={assets.logo} alt="Logo" />
 
-      {/* Desktop Nav */}
+      {/* Desktop Navigation */}
       <ul className='md:flex items-start gap-5 font-medium hidden'>
         <NavLink to='/'><li className='py-1'>HOME</li></NavLink>
         <NavLink to='/doctors'><li className='py-1'>ALL DOCTORS</li></NavLink>
@@ -32,12 +26,12 @@ const Navbar = () => {
             <img className='w-8 h-8 object-cover rounded-full' src={userData.image || assets.user_icon} alt="User" />
             <img className='w-2.5' src={assets.dropdown_icon} alt="Dropdown" />
 
-            {/* Dropdown menu */}
+            {/* Dropdown */}
             <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block'>
               <div className='min-w-48 bg-gray-50 rounded shadow-lg flex flex-col gap-4 p-4'>
                 <p onClick={() => navigate('/my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
                 <p onClick={() => navigate('/my-appointments')} className='hover:text-black cursor-pointer'>My Appointments</p>
-                <p onClick={logout} className='hover:text-black cursor-pointer text-red-500'>Logout</p>
+                <p onClick={logoutUser} className='hover:text-black cursor-pointer text-red-500'>Logout</p>
               </div>
             </div>
           </div>
@@ -47,9 +41,10 @@ const Navbar = () => {
           </button>
         )}
 
+        {/* Mobile menu toggle */}
         <img onClick={() => setShowMenu(true)} className='w-6 md:hidden cursor-pointer' src={assets.menu_icon} alt="Menu" />
 
-        {/* ---- Mobile Menu ---- */}
+        {/* Mobile Side Menu */}
         <div className={`fixed md:hidden top-0 right-0 z-30 bg-white h-full w-[70%] shadow-lg transition-all duration-300 ${showMenu ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className='flex justify-between items-center p-5 border-b'>
             <img src={assets.logo} className='w-36' alt="Logo" />
@@ -62,12 +57,12 @@ const Navbar = () => {
             <NavLink onClick={() => setShowMenu(false)} to='/about'><p>ABOUT</p></NavLink>
             <NavLink onClick={() => setShowMenu(false)} to='/contact'><p>CONTACT</p></NavLink>
 
-            {token ? (
+            {token && userData ? (
               <>
                 <hr />
                 <p onClick={() => { navigate('/my-profile'); setShowMenu(false); }}>My Profile</p>
                 <p onClick={() => { navigate('/my-appointments'); setShowMenu(false); }}>My Appointments</p>
-                <p onClick={() => { logout(); setShowMenu(false); }} className="text-red-500">Logout</p>
+                <p onClick={() => { logoutUser(); setShowMenu(false); }} className="text-red-500">Logout</p>
               </>
             ) : (
               <p onClick={() => { navigate('/login'); setShowMenu(false); }} className='text-primary underline'>Login / Create Account</p>

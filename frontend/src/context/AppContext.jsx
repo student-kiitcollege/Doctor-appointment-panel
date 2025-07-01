@@ -12,6 +12,14 @@ const AppContextProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [userData, setUserData] = useState(null);
 
+  // ✅ Logout function
+  const logoutUser = () => {
+    setToken("");
+    setUserData(null);
+    localStorage.removeItem("token");
+    toast.info("You have been logged out");
+  };
+
   // ✅ Fetch doctors list
   const getDoctorsData = async () => {
     try {
@@ -27,7 +35,7 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // ✅ Fetch user profile if token exists
+  // ✅ Fetch user profile if token is valid
   const loadUserProfileData = async () => {
     if (!token) return;
 
@@ -42,42 +50,49 @@ const AppContextProvider = ({ children }) => {
         setUserData(data.userData);
         console.log("✅ User Profile Fetched:", data.userData);
       } else {
-        setUserData(null);
+        logoutUser();
         toast.error(data.message || "Failed to load profile");
       }
     } catch (error) {
       console.error("User Profile Error:", error);
-      setUserData(null);
-      toast.error("Unable to load user profile");
+
+      if (error.response?.status === 401 || error.message.includes("token")) {
+        // Token expired/invalid
+        logoutUser();
+        toast.error("Session expired. Please login again.");
+      } else {
+        setUserData(null);
+        toast.error("Unable to load user profile");
+      }
     }
   };
 
-  // 🔄 Load doctors on mount
+  // 🔄 Load doctor list on mount
   useEffect(() => {
     getDoctorsData();
   }, []);
 
-  // 🔄 Handle token & profile changes
+  // 🔄 On token change, sync localStorage and load user
   useEffect(() => {
     if (token) {
       localStorage.setItem("token", token);
       loadUserProfileData();
     } else {
-      localStorage.removeItem("token");
-      setUserData(null);
+      logoutUser();
     }
   }, [token]);
 
   const value = {
-    doctors,
-    getDoctorsData,
     currencySymbol,
     backendUrl,
+    doctors,
+    getDoctorsData,
     token,
     setToken,
     userData,
     setUserData,
     loadUserProfileData,
+    logoutUser, // 👈 exposed in context
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
