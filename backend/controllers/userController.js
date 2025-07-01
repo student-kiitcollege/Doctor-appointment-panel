@@ -220,16 +220,18 @@ const cancelAppointment = async (req, res) => {
 
 // API to list user's appointments
 const listAppointment = async (req, res) => {
-    try {
-        const { userId } = req.body;
-        const appointments = await appointmentModel.find({ userId });
-        res.json({ success: true, appointments });
+  try {
+    const userId = req.user.id; // ✅ From verified token
 
-    } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
-    }
+    const appointments = await appointmentModel.find({ userId });
+
+    res.json({ success: true, appointments });
+  } catch (error) {
+    console.error("List Appointment Error:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
+
 
 // Razorpay payment
 const paymentRazorpay = async (req, res) => {
