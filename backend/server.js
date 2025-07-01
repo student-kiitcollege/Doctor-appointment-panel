@@ -16,7 +16,7 @@ connectCloudinary();
 // ✅ Allowed Origins (Dev + Production)
 const allowedOrigins = [
   "https://doctor-appointment-panel-admin.vercel.app",  // Admin Panel (Prod)
-  "https://doctor-appointment-panel-user.vercel.app",   // User Panel (Prod)
+  "https://doctor-appointment-panel.vercel.app",   // User Panel (Prod)
   "http://localhost:5173",                              // User (Dev)
   "http://localhost:5174",                              // Admin (Dev)
 ];
