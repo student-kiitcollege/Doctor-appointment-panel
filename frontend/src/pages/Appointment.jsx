@@ -20,10 +20,10 @@ const Appointment = () => {
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
-
   const navigate = useNavigate();
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
+  // Load doctor details from context
   const fetchDocInfo = () => {
     const doc = doctors.find((doc) => doc._id === docId);
     if (!doc) {
@@ -33,6 +33,7 @@ const Appointment = () => {
     setDocInfo(doc);
   };
 
+  // Generate slots for 7 days dynamically
   const getAvailableSlots = () => {
     const today = new Date();
     const slots = [];
@@ -61,8 +62,7 @@ const Appointment = () => {
         });
 
         const slotDate = `${currentDate.getDate()}_${currentDate.getMonth() + 1}_${currentDate.getFullYear()}`;
-        const isSlotBooked =
-          docInfo?.slots_booked?.[slotDate]?.includes(formattedTime);
+        const isSlotBooked = docInfo?.slots_booked?.[slotDate]?.includes(formattedTime);
 
         if (!isSlotBooked) {
           timeSlots.push({
@@ -80,6 +80,7 @@ const Appointment = () => {
     setDocSlots(slots);
   };
 
+  // Book an appointment
   const bookAppointment = async () => {
     if (!token) {
       toast.warning("Please login to book an appointment");
@@ -121,7 +122,7 @@ const Appointment = () => {
 
       if (data.success) {
         toast.success("Appointment booked successfully!");
-        getDoctosData();
+        getDoctosData(); // refresh booked slots
         navigate("/my-appointments");
       } else {
         toast.error(data.message || "Failed to book appointment");
