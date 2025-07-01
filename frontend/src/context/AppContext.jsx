@@ -36,7 +36,7 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Fetch user profile, accepts optional token param to avoid race condition
+  // Fetch user profile, with optional token param to avoid race conditions
   const loadUserProfileData = async (tokenParam) => {
     const authToken = tokenParam || token;
     if (!authToken || isLoadingProfile) return;
@@ -83,11 +83,13 @@ const AppContextProvider = ({ children }) => {
     getDoctorsData();
   }, []);
 
-  // On token change, sync localStorage and load profile if no param passed explicitly
+  // On token change, sync localStorage and load profile if token changed outside handleLogin
   useEffect(() => {
     if (token) {
       localStorage.setItem("token", token);
-      loadUserProfileData(); // only call if no explicit param used
+      // Only load profile if userData is null to avoid duplicate loads,
+      // because handleLogin already calls loadUserProfileData
+      if (!userData) loadUserProfileData();
     } else {
       localStorage.removeItem("token");
       setUserData(null);
@@ -105,7 +107,7 @@ const AppContextProvider = ({ children }) => {
     setUserData,
     loadUserProfileData,
     logoutUser,
-    handleLogin, // expose handleLogin for login component
+    handleLogin, // Use this in login component
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

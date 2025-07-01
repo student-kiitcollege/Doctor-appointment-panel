@@ -7,6 +7,7 @@ import { assets } from '../assets/assets';
 const MyProfile = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const {
     token,
@@ -16,7 +17,13 @@ const MyProfile = () => {
     loadUserProfileData,
   } = useContext(AppContext);
 
+  if (!userData) return null; // avoid rendering if no user data
+
   const updateUserProfileData = async () => {
+    if (loading) return;
+
+    setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append('name', userData.name || '');
@@ -32,31 +39,51 @@ const MyProfile = () => {
       const { data } = await axios.post(
         `${backendUrl}/api/user/update-profile`,
         formData,
-        { headers: { token } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,  // Fix header name
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
 
       if (data.success) {
         toast.success(data.message);
-        await loadUserProfileData();
+        await loadUserProfileData(); // reload profile data from backend
         setIsEdit(false);
         setImage(null);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || 'Failed to update profile');
       }
     } catch (error) {
       console.error(error);
       toast.error(error?.response?.data?.message || error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  return userData ? (
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+    }
+  };
+
+  return (
     <div className="max-w-lg flex flex-col gap-2 text-sm pt-5">
       {/* Profile Image Upload */}
       <label htmlFor="image" className="cursor-pointer w-fit">
         <div className="inline-block relative">
           <img
             className="w-36 h-36 rounded object-cover opacity-90"
-            src={image ? URL.createObjectURL(image) : userData.image}
+            src={
+              image
+                ? URL.createObjectURL(image)
+                : userData.image
+                ? userData.image
+                : assets.user_icon
+            }
             alt="profile"
           />
           {isEdit && !image && (
@@ -67,7 +94,15 @@ const MyProfile = () => {
             />
           )}
         </div>
-        {isEdit && <input type="file" id="image" hidden onChange={(e) => setImage(e.target.files[0])} />}
+        {isEdit && (
+          <input
+            type="file"
+            id="image"
+            hidden
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+        )}
       </label>
 
       {/* Name */}
@@ -75,13 +110,15 @@ const MyProfile = () => {
         <input
           type="text"
           className="bg-gray-50 text-2xl font-medium max-w-60 mt-4"
-          value={userData.name}
+          value={userData.name || ''}
           onChange={(e) =>
             setUserData((prev) => ({ ...prev, name: e.target.value }))
           }
         />
       ) : (
-        <p className="text-2xl font-semibold text-[#262626] mt-4">{userData.name}</p>
+        <p className="text-2xl font-semibold text-[#262626] mt-4">
+          {userData.name || ''}
+        </p>
       )}
 
       <hr className="bg-[#ADADAD] h-[1px] border-none mt-2" />
@@ -91,20 +128,20 @@ const MyProfile = () => {
         <p className="text-gray-600 underline mt-3">CONTACT INFORMATION</p>
         <div className="grid grid-cols-[1fr_3fr] gap-y-2.5 mt-3 text-[#363636]">
           <p className="font-medium">Email:</p>
-          <p className="text-blue-500">{userData.email}</p>
+          <p className="text-blue-500">{userData.email || ''}</p>
 
           <p className="font-medium">Phone:</p>
           {isEdit ? (
             <input
               type="text"
               className="bg-gray-50 max-w-52"
-              value={userData.phone}
+              value={userData.phone || ''}
               onChange={(e) =>
                 setUserData((prev) => ({ ...prev, phone: e.target.value }))
               }
             />
           ) : (
-            <p className="text-blue-500">{userData.phone}</p>
+            <p className="text-blue-500">{userData.phone || ''}</p>
           )}
 
           <p className="font-medium">Address:</p>
@@ -117,7 +154,7 @@ const MyProfile = () => {
                 onChange={(e) =>
                   setUserData((prev) => ({
                     ...prev,
-                    address: { ...prev.address, line1: e.target.value },
+                    address: { ...(prev.address || {}), line1: e.target.value },
                   }))
                 }
               />
@@ -128,7 +165,7 @@ const MyProfile = () => {
                 onChange={(e) =>
                   setUserData((prev) => ({
                     ...prev,
-                    address: { ...prev.address, line2: e.target.value },
+                    address: { ...(prev.address || {}), line2: e.target.value },
                   }))
                 }
               />
@@ -151,7 +188,7 @@ const MyProfile = () => {
           {isEdit ? (
             <select
               className="bg-gray-50 max-w-28"
-              value={userData.gender}
+              value={userData.gender || 'Not Selected'}
               onChange={(e) =>
                 setUserData((prev) => ({ ...prev, gender: e.target.value }))
               }
@@ -161,7 +198,7 @@ const MyProfile = () => {
               <option value="Female">Female</option>
             </select>
           ) : (
-            <p className="text-gray-500">{userData.gender}</p>
+            <p className="text-gray-500">{userData.gender || 'Not Selected'}</p>
           )}
 
           <p className="font-medium">Birthday:</p>
@@ -169,13 +206,13 @@ const MyProfile = () => {
             <input
               type="date"
               className="bg-gray-50 max-w-28"
-              value={userData.dob}
+              value={userData.dob || ''}
               onChange={(e) =>
                 setUserData((prev) => ({ ...prev, dob: e.target.value }))
               }
             />
           ) : (
-            <p className="text-gray-500">{userData.dob}</p>
+            <p className="text-gray-500">{userData.dob || '-'}</p>
           )}
         </div>
       </div>
@@ -185,9 +222,14 @@ const MyProfile = () => {
         {isEdit ? (
           <button
             onClick={updateUserProfileData}
-            className="border border-primary px-8 py-2 rounded-full hover:bg-primary hover:text-white transition-all"
+            disabled={loading}
+            className={`border border-primary px-8 py-2 rounded-full transition-all ${
+              loading
+                ? 'bg-primary text-white cursor-not-allowed opacity-60'
+                : 'hover:bg-primary hover:text-white'
+            }`}
           >
-            Save Information
+            {loading ? 'Saving...' : 'Save Information'}
           </button>
         ) : (
           <button
@@ -199,7 +241,7 @@ const MyProfile = () => {
         )}
       </div>
     </div>
-  ) : null;
+  );
 };
 
 export default MyProfile;

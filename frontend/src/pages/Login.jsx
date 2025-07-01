@@ -9,35 +9,47 @@ const Login = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { backendUrl, handleLogin } = useContext(AppContext);  // Use handleLogin from context
+  const { backendUrl, handleLogin } = useContext(AppContext);
+
+  const clearForm = () => {
+    setName('');
+    setEmail('');
+    setPassword('');
+  };
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
+    if (loading) return; // prevent multiple submits
+
     try {
+      setLoading(true);
       let response;
 
       if (isSignUp) {
-        if (!name || !email || !password) {
+        if (!name.trim() || !email.trim() || !password) {
           toast.error("All fields are required");
+          setLoading(false);
           return;
         }
 
         response = await axios.post(`${backendUrl}/api/user/register`, {
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
           password,
         });
       } else {
-        if (!email || !password) {
+        if (!email.trim() || !password) {
           toast.error("Email and password are required");
+          setLoading(false);
           return;
         }
 
         response = await axios.post(`${backendUrl}/api/user/login`, {
-          email,
+          email: email.trim(),
           password,
         });
       }
@@ -45,12 +57,9 @@ const Login = () => {
       const { data } = response;
 
       if (data.success && data.token) {
-        // Instead of setToken + loadUserProfileData separately,
-        // use handleLogin that does both correctly
         handleLogin(data.token);
-
         toast.success(isSignUp ? "Account created successfully" : "Login successful");
-
+        clearForm();
         navigate('/my-appointments');
       } else {
         toast.error(data.message || 'Authentication failed');
@@ -58,6 +67,8 @@ const Login = () => {
     } catch (error) {
       console.error("Auth Error:", error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,6 +88,7 @@ const Login = () => {
               className="border border-[#DADADA] rounded w-full p-2 mt-1"
               placeholder="Enter your name"
               required
+              disabled={loading}
             />
           </div>
         )}
@@ -90,6 +102,7 @@ const Login = () => {
             className="border border-[#DADADA] rounded w-full p-2 mt-1"
             placeholder="Enter your email"
             required
+            disabled={loading}
           />
         </div>
 
@@ -102,14 +115,18 @@ const Login = () => {
             className="border border-[#DADADA] rounded w-full p-2 mt-1"
             placeholder="Enter your password"
             required
+            disabled={loading}
           />
         </div>
 
         <button
           type="submit"
-          className="bg-primary text-white w-full py-2 my-2 rounded-md text-base hover:opacity-90 transition"
+          disabled={loading}
+          className={`bg-primary text-white w-full py-2 my-2 rounded-md text-base hover:opacity-90 transition ${
+            loading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
         >
-          {isSignUp ? 'Create Account' : 'Login'}
+          {loading ? (isSignUp ? "Creating Account..." : "Logging in...") : (isSignUp ? 'Create Account' : 'Login')}
         </button>
 
         <p className="text-center">
@@ -117,7 +134,7 @@ const Login = () => {
             <>
               Already have an account?{' '}
               <span
-                onClick={() => setIsSignUp(false)}
+                onClick={() => !loading && setIsSignUp(false)}
                 className="text-blue-500 underline cursor-pointer hover:text-blue-600"
               >
                 Login here
@@ -127,7 +144,7 @@ const Login = () => {
             <>
               Create a new account?{' '}
               <span
-                onClick={() => setIsSignUp(true)}
+                onClick={() => !loading && setIsSignUp(true)}
                 className="text-blue-500 underline cursor-pointer hover:text-blue-600"
               >
                 Click here
