@@ -13,7 +13,7 @@ const Appointment = () => {
     currencySymbol,
     backendUrl,
     token,
-    getDoctosData,
+    getDoctorsData, // ✅ Corrected function name
   } = useContext(AppContext);
 
   const [docInfo, setDocInfo] = useState(null);
@@ -23,7 +23,6 @@ const Appointment = () => {
   const navigate = useNavigate();
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-  // Load doctor details from context
   const fetchDocInfo = () => {
     const doc = doctors.find((doc) => doc._id === docId);
     if (!doc) {
@@ -33,7 +32,6 @@ const Appointment = () => {
     setDocInfo(doc);
   };
 
-  // Generate slots for 7 days dynamically
   const getAvailableSlots = () => {
     const today = new Date();
     const slots = [];
@@ -80,7 +78,6 @@ const Appointment = () => {
     setDocSlots(slots);
   };
 
-  // Book an appointment
   const bookAppointment = async () => {
     if (!token) {
       toast.warning("Please login to book an appointment");
@@ -122,7 +119,7 @@ const Appointment = () => {
 
       if (data.success) {
         toast.success("Appointment booked successfully!");
-        getDoctosData(); // refresh booked slots
+        getDoctorsData(); // ✅ call the correct function
         navigate("/my-appointments");
       } else {
         toast.error(data.message || "Failed to book appointment");

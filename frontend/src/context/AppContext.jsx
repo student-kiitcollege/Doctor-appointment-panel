@@ -92,7 +92,7 @@ const AppContextProvider = ({ children }) => {
     userData,
     setUserData,
     loadUserProfileData,
-    logoutUser, // 👈 exposed in context
+    logoutUser, 
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
