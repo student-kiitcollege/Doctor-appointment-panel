@@ -57,7 +57,6 @@ const AppContextProvider = ({ children }) => {
       console.error("User Profile Error:", error);
 
       if (error.response?.status === 401 || error.message.includes("token")) {
-        // Token expired/invalid
         logoutUser();
         toast.error("Session expired. Please login again.");
       } else {
@@ -78,7 +77,8 @@ const AppContextProvider = ({ children }) => {
       localStorage.setItem("token", token);
       loadUserProfileData();
     } else {
-      logoutUser();
+      setUserData(null);
+      localStorage.removeItem("token");
     }
   }, [token]);
 
@@ -92,7 +92,7 @@ const AppContextProvider = ({ children }) => {
     userData,
     setUserData,
     loadUserProfileData,
-    logoutUser, 
+    logoutUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
